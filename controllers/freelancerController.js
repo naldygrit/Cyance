@@ -65,9 +65,36 @@ const searchProjects = async (req, res) => {
     }
 };
 
+// Get all freelancers
+const getAllFreelancers = async (req, res) => {
+    try {
+        const freelancers = await User.find({ role: 'freelancer' });
+        res.status(200).json(freelancers);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching freelancers', error: error.message });
+    }
+};
+
+// Get freelancer profile by ID
+const getFreelancerProfile = async (req, res) => {
+    try {
+        const { freelancerId } = req.params;
+        const freelancer = await User.findById(freelancerId);
+
+        if (!freelancer || freelancer.role !== 'freelancer') {
+            return res.status(404).json({ message: 'Freelancer not found' });
+        }
+
+        res.status(200).json(freelancer);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching freelancer profile', error: error.message });
+    }
+};
+
 module.exports = {
     authMiddleware,
     updateProfile,
-    searchProjects
+    searchProjects,
+    getAllFreelancers,
+    getFreelancerProfile
 };
-

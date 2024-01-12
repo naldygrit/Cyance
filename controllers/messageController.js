@@ -1,3 +1,4 @@
+/ controllers/messageController.js
 const Message = require('../models/messageModel');
 const Project = require('../models/projectModel');
 const User = require('../models/userModel');

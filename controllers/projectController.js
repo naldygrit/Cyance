@@ -1,3 +1,4 @@
+/ controllers/projectController.js
 const Project = require('../models/projectModel');
 const User = require('../models/userModel'); // Ensure User model is imported
 const speakeasy = require('speakeasy');

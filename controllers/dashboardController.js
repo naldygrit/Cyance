@@ -87,7 +87,7 @@ const getClientSpecificFunctions = async () => {
 };
 
 // Method to update user profile
-exports.updateUserProfile = async (req, res) => {
+const updateUserProfile = async (req, res) => {
     try {
         const { userId } = req.params;
         const updateData = req.body;
@@ -99,7 +99,7 @@ exports.updateUserProfile = async (req, res) => {
 };
 
 // Method for a freelancer to express interest in a project
-exports.expressInterestInProject = async (req, res) => {
+const expressInterestInProject = async (req, res) => {
     try {
         const { projectId } = req.body;
         const project = await Project.findById(projectId);
@@ -112,7 +112,7 @@ exports.expressInterestInProject = async (req, res) => {
 };
 
 // Method to view billing details
-exports.viewBillingDetails = async (req, res) => {
+const viewBillingDetails = async (req, res) => {
     try {
         const billingDetails = await Billing.find({ userId: req.user._id });
         res.status(200).json(billingDetails);
@@ -134,7 +134,7 @@ const getSecurePaymentDetails = async () => {
     return await Billing.find({ client: req.user._id });
 };
 
-exports.getUserDashboard = async (req, res) => {
+const getUserDashboard = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         const dashboardData = {

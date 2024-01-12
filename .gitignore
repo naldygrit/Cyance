@@ -1,1 +1,13 @@
 node_modules
+# .gitignore
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore .env files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore other files or directories you want to exclude

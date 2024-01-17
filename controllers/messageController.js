@@ -1,7 +1,8 @@
-/ controllers/messageController.js
+// controllers/messageController.js
 const Message = require('../models/messageModel');
 const Project = require('../models/projectModel');
 const User = require('../models/userModel');
+const sendNotification = require('../utils/notificationUtils');
 
 // Function to send a message
 const sendMessage = async (req, res) => {
@@ -30,6 +31,10 @@ const sendMessage = async (req, res) => {
     });
 
     await newMessage.save();
+
+     // Send notification to the receiver
+     sendNotification(receiver, `New message from ${req.user.name}: "${content}"`);
+     
     res.status(201).json({ message: 'Message sent successfully', data: newMessage });
   } catch (error) {
     res.status(500).json({ message: 'Error sending message', error: error.message });

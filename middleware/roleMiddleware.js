@@ -1,32 +1,32 @@
 // middleware/roleMiddleware.js
-const jwt = require('jsonwebtoken')
-const jwtConfig = require('../config/jwt-config')
+const jwt = require('jsonwebtoken');
+const jwtConfig = require('../config/jwt-config');
 
 const roleMiddleware = (roles) => {
   return (req, res, next) => {
     try {
-      const token = req.headers.authorization.split(' ')[1]
-      const decoded = jwt.verify(token, jwtConfig.secret)
-
-      // Check if the token has expired
-      if (decoded.exp <= Date.now() / 1000) {
-        return res.status(401).json({ message: 'Token has expired' })
+      const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
+      if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
       }
+
+      const decoded = jwt.verify(token, jwtConfig.secret);
 
       if (!roles.includes(decoded.role)) {
-        return res.status(403).json({ message: 'Access denied' })
+        return res.status(403).json({ message: 'Access denied' });
       }
 
-      req.user = decoded
-      next()
+      req.user = decoded;
+      next();
     } catch (error) {
-      // Handle various JWT verification errors
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ message: 'Token has expired' })
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: 'Token has expired' });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ message: 'Invalid token' });
       }
-      res.status(401).json({ message: 'Not authorized' })
+      return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   }
 }
 
-module.exports = roleMiddleware
+module.exports = roleMiddleware;

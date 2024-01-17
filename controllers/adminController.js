@@ -132,7 +132,19 @@ const getClientProjects = async (req, res) => {
   }
 };
 
-// Export other functions as needed...
+// Get all users
+const getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users from the database
+    const allUsers = await User.find();
+
+    res.status(200).json(allUsers);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching all users', error: error.message });
+  }
+};
+
+// Export all functions
 module.exports = {
   authMiddleware,
   getAdminDashboard,
@@ -142,4 +154,5 @@ module.exports = {
   getClientProfile,
   updateClientProfile,
   getClientProjects,
+  getAllUsers,
 };

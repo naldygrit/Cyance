@@ -59,20 +59,10 @@ const handleUserErrors = (res, status, message, error) => {
   }
 };
 
-// Get all users
-const getAllUsers = async (req, res) => {
+// Register a new user
+const registerUser = async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
-  } catch (error) {
-    handleUserErrors(res, 500, 'Error fetching users', error);
-  }
-};
-
-// Create a new user with role-specific logic
-const createUser = async (req, res) => {
-  try {
-    const { email, password, role, name, businessName, businessType } = req.body;
+    const { email, password, role, name } = req.body;
     const validation = validateUserInput({ email, password, role });
 
     if (!validation.isValid) {
@@ -89,15 +79,17 @@ const createUser = async (req, res) => {
       email, 
       password: hashedPassword, 
       role,
-      name, // Optional, can be added in profile update
-      businessName, // For clients, optional
-      businessType  // For clients, optional
+      name,
+      // Additional fields for profile completion are initialized as empty
+      skills: [],
+      businessName: '',
+      businessType: ''
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User created successfully', user: newUser });
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
-    handleUserErrors(res, 500, 'Error creating user', error);
+    handleUserErrors(res, 500, 'Error registering user', error);
   }
 };
 
@@ -118,15 +110,20 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Update user
-const updateUser = async (req, res) => {
+// Update user profile
+const updateUserProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     const updateData = req.body;
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
-    res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User profile updated successfully', user: updatedUser });
   } catch (error) {
-    handleUserErrors(res, 500, 'Error updating user', error);
+    handleUserErrors(res, 500, 'Error updating user profile', error);
   }
 };
 
@@ -145,7 +142,7 @@ const deleteUser = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -160,14 +157,14 @@ const getUserById = async (req, res) => {
 // Get user profile by ID
 const getUserProfile = async (req, res) => {
   try {
-    const { userId } = req.params; // Adjust based on how you're passing the user ID
-    const user = await User.findById(userId).select('-password'); // Exclude password from the result
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json(user); // Adjust the response as needed for your application
+    res.status(200).json(user);
   } catch (error) {
     handleUserErrors(res, 500, 'Error fetching user profile', error);
   }
@@ -175,10 +172,9 @@ const getUserProfile = async (req, res) => {
 
 module.exports = {
   authMiddleware,
-  getAllUsers,
-  createUser,
+  registerUser,
   loginUser,
-  updateUser,
+  updateUserProfile,
   deleteUser,
   getUserById,
   getUserProfile,

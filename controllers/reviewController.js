@@ -3,9 +3,10 @@ const jwt = require('jsonwebtoken');
 const Review = require('../models/reviewModel');
 const User = require('../models/userModel');
 const { verifyToken } = require('../utils/tokenUtils');
+const sendNotification = require('../utils/notificationUtils');
 
 // Middleware to authenticate and authorize requests
-exports.authMiddleware = async (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const token = req.header('Authorization').replace('Bearer ', '');
     const decoded = verifyToken(token);
 
@@ -23,7 +24,7 @@ exports.authMiddleware = async (req, res, next) => {
 };
 
 // Create a review for a freelancer
-exports.createReview = async (req, res) => {
+const createReview = async (req, res) => {
     try {
         const { rating, comment, freelancerId } = req.body;
 
@@ -60,6 +61,9 @@ if (!hasWorkedWithFreelancer) {
         freelancer.averageRating = await calculateAverageRating(freelancerId);
         await freelancer.save();
 
+        // Notify the freelancer about the new review
+        sendNotification(freelancerId, `You have received a new review from ${req.user.name}`);
+
         // Return a 201 response with the created review
         res.status(201).json(review);
     } catch (error) {
@@ -69,7 +73,7 @@ if (!hasWorkedWithFreelancer) {
 };
 
 // Get all reviews for a freelancer
-exports.getReviews = async (req, res) => {
+const getReviews = async (req, res) => {
     try {
         const { freelancerId } = req.params;
         const reviews = await Review.find({ freelancerId });
@@ -83,7 +87,7 @@ exports.getReviews = async (req, res) => {
 };
 
 // View details of a specific review
-exports.viewReview = async (req, res) => {
+const viewReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
         const review = await Review.findById(reviewId);
@@ -102,7 +106,7 @@ exports.viewReview = async (req, res) => {
 };
 
 // Update a review
-exports.updateReview = async (req, res) => {
+const updateReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
         const { rating, comment } = req.body;
@@ -119,6 +123,9 @@ exports.updateReview = async (req, res) => {
             return res.status(404).json({ message: 'Review not found' });
         }
 
+        // Notify the freelancer about the review update
+        sendNotification(review.freelancerId, `A review you received has been updated`);
+
         // Return a 200 response with the updated review
         res.status(200).json({ message: 'Review updated successfully', review });
     } catch (error) {
@@ -128,7 +135,7 @@ exports.updateReview = async (req, res) => {
 };
 
 // Delete a review
-exports.deleteReview = async (req, res) => {
+const deleteReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
 
@@ -139,6 +146,9 @@ exports.deleteReview = async (req, res) => {
             // If the review is not found, return a 404 response
             return res.status(404).json({ message: 'Review not found' });
         }
+
+        // Notify the freelancer about the review deletion
+        sendNotification(review.freelancerId, `A review you received has been deleted`);
 
         // Return a 200 response with a success message
         res.status(200).json({ message: 'Review deleted successfully' });

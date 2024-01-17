@@ -23,8 +23,11 @@ const routeBasedOnRole = (req, res, next) => {
 // Create a new project (accessible to clients)
 router.post('/create', roleMiddleware(['client']), projectController.createProject);
 
-// Get projects based on user role
-router.get('/projects', roleMiddleware(['client', 'freelancer']), routeBasedOnRole);
+// Get projects (accessible to both clients and freelancers)
+router.get('/projects', roleMiddleware(['client', 'freelancer']), projectController.getProjects);
+
+// View details of a specific project (accessible to all authenticated users)
+router.get('/view/:projectId', projectController.authMiddleware, projectController.viewProject);
 
 // Update a project (accessible to clients)
 router.put('/:projectId', roleMiddleware(['client']), projectController.updateProject);
